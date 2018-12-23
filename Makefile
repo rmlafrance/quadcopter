@@ -1,7 +1,4 @@
 TARGET:=FreeRTOS
-# TODO change to your ARM gcc toolchain path
-TOOLCHAIN_ROOT:=~/gcc-arm-none-eabi
-TOOLCHAIN_PATH:=$(TOOLCHAIN_ROOT)/bin
 TOOLCHAIN_PREFIX:=arm-none-eabi
 
 # Optimization level, can be [0, 1, 2, 3, s].
@@ -19,6 +16,14 @@ INCLUDE+=-I$(CURDIR)/Libraries/CMSIS/Device/ST/STM32F4xx/Include
 INCLUDE+=-I$(CURDIR)/Libraries/CMSIS/Include
 INCLUDE+=-I$(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/inc
 INCLUDE+=-I$(CURDIR)/config
+INCLUDE+=-I$(CURDIR)/motor_control
+INCLUDE+=-I$(CURDIR)/sensor
+INCLUDE+=-I$(CURDIR)/status
+INCLUDE+=-I.
+INCLUDE+=-I$(CURDIR)/drivers
+INCLUDE+=-I$(CURDIR)/drivers/leds
+INCLUDE+=-I$(CURDIR)/drivers/buttons
+INCLUDE+=-I$(CURDIR)/drivers/pwm
 
 BUILD_DIR = $(CURDIR)/build
 BIN_DIR = $(CURDIR)/binary
@@ -26,8 +31,18 @@ BIN_DIR = $(CURDIR)/binary
 # vpath is used so object files are written to the current directory instead
 # of the same directory as their source files
 vpath %.c $(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/src \
-          $(CURDIR)/Libraries/syscall $(CURDIR)/hardware $(FREERTOS) \
-          $(FREERTOS)/portable/MemMang $(FREERTOS)/portable/GCC/ARM_CM4F 
+          $(CURDIR)/Libraries/syscall \
+	  	  $(CURDIR)/hardware $(FREERTOS) \
+          $(FREERTOS)/portable/MemMang \
+	  	  $(FREERTOS)/portable/GCC/ARM_CM4F \
+	  	  $(CURDIR)/motor_control \
+	  	  $(CURDIR)/sensor \
+	  	  $(CURDIR)/status \
+		  . \
+	  	  $(CURDIR)/drivers \
+	  	  $(CURDIR)/drivers/leds \
+	  	  $(CURDIR)/drivers/pwm \
+	  	  $(CURDIR)/drivers/buttons \
 
 vpath %.s $(STARTUP)
 ASRC=startup_stm32f4xx.s
@@ -37,6 +52,14 @@ SRC+=stm32f4xx_it.c
 SRC+=system_stm32f4xx.c
 SRC+=main.c
 SRC+=syscalls.c
+
+# MY CRAP
+SRC+=motor_control_main.c
+SRC+=sensor_main.c
+SRC+=status_main.c
+SRC+=leds.c
+SRC+=pwm.c
+SRC+=buttons.c
 
 # FreeRTOS Source Files
 SRC+=port.c
@@ -98,6 +121,7 @@ CDEFS+=-DHSE_VALUE=8000000
 CDEFS+=-D__FPU_PRESENT=1
 CDEFS+=-D__FPU_USED=1
 CDEFS+=-DARM_MATH_CM4
+CDEFS+=-Werror
 
 MCUFLAGS=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant -finline-functions -Wdouble-promotion -std=gnu99
 COMMONFLAGS=-O$(OPTLVL) $(DBG) -Wall -ffunction-sections -fdata-sections
@@ -106,12 +130,12 @@ CFLAGS=$(COMMONFLAGS) $(MCUFLAGS) $(INCLUDE) $(CDEFS)
 LDLIBS=-lm -lc -lgcc
 LDFLAGS=$(MCUFLAGS) -u _scanf_float -u _printf_float -fno-exceptions -Wl,--gc-sections,-T$(LINKER_SCRIPT),-Map,$(BIN_DIR)/$(TARGET).map
 
-CC=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc
-LD=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc
-OBJCOPY=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-objcopy
-AS=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-as
-AR=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-ar
-GDB=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-gdb
+CC=$(TOOLCHAIN_PREFIX)-gcc
+LD=$(TOOLCHAIN_PREFIX)-gcc
+OBJCOPY=$(TOOLCHAIN_PREFIX)-objcopy
+AS=$(TOOLCHAIN_PREFIX)-as
+AR=$(TOOLCHAIN_PREFIX)-ar
+GDB=$(TOOLCHAIN_PREFIX)-gdb
 
 OBJ = $(SRC:%.c=$(BUILD_DIR)/%.o)
 
@@ -120,14 +144,14 @@ $(BUILD_DIR)/%.o: %.c
 	@$(CC) $(CFLAGS) $< -c -o $@
 
 all: $(OBJ)
-	@echo [AS] $(ASRC)
+	#@echo [AS] $(ASRC)
 	@$(AS) -o $(ASRC:%.s=$(BUILD_DIR)/%.o) $(STARTUP)/$(ASRC)
-	@echo [LD] $(TARGET).elf
-	@$(CC) -o $(BIN_DIR)/$(TARGET).elf $(LDFLAGS) $(OBJ) $(ASRC:%.s=$(BUILD_DIR)/%.o) $(LDLIBS)
+	@echo [LD] $(TARGET).out
+	@$(CC) -o $(BIN_DIR)/$(TARGET).out $(LDFLAGS) $(OBJ) $(ASRC:%.s=$(BUILD_DIR)/%.o) $(LDLIBS)
 	@echo [HEX] $(TARGET).hex
-	@$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/$(TARGET).hex
+	@$(OBJCOPY) -O ihex $(BIN_DIR)/$(TARGET).out $(BIN_DIR)/$(TARGET).hex
 	@echo [BIN] $(TARGET).bin
-	@$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/$(TARGET).bin
+	@$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).out $(BIN_DIR)/$(TARGET).bin
 
 .PHONY: clean
 
@@ -136,9 +160,10 @@ clean:
 	@rm -f $(OBJ)
 	@rm -f $(ASRC:%.s=$(BUILD_DIR)/%.o)
 	@echo [RM] BIN
-	@rm -f $(BIN_DIR)/$(TARGET).elf
+	@rm -f $(BIN_DIR)/$(TARGET).out
 	@rm -f $(BIN_DIR)/$(TARGET).hex
 	@rm -f $(BIN_DIR)/$(TARGET).bin
 
 flash:
 	@st-flash write $(BIN_DIR)/$(TARGET).bin 0x8000000
+

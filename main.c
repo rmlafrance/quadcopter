@@ -5,13 +5,30 @@
 #include "stdio.h"
 #include "stm32f4xx_usart.h"
 
+// threads
+#include "motor_control.h"
+#include "sensor.h"
+#include "status.h"
+
+// drivers
+#include "leds.h"
+#include "pwm.h"
+#include "buttons.h"
+
 // Macro to use CCM (Core Coupled Memory) in STM32F4
 #define CCM_RAM __attribute__((section(".ccmram")))
 
 #define FPU_TASK_STACK_SIZE 256
-
 StackType_t fpuTaskStack[FPU_TASK_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
 StaticTask_t fpuTaskBuffer CCM_RAM;  // Put TCB in CCM
+
+#define STATUS_STACK_SIZE	(1024)
+StackType_t status_task_stack[STATUS_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
+StaticTask_t status_task_buffer CCM_RAM;  // Put TCB in CCM
+
+#define MOTOR_CONTROL_STACK_SIZE	(1024)
+StackType_t motor_control_task_stack[MOTOR_CONTROL_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
+StaticTask_t motor_control_task_buffer CCM_RAM;  // Put TCB in CCM
 
 void init_USART3(void);
 
@@ -19,13 +36,22 @@ void test_FPU_test(void* p);
 
 int main(void) {
   SystemInit();
+
+  /* set 4 bits for priority and 0 for subpriority */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+
+  button_init();
+  //led_init();
+  pwm_init();
+
   init_USART3();
 
   // Create a task
   // Stack and TCB are placed in CCM of STM32F4
   // The CCM block is connected directly to the core, which leads to zero wait states
-  xTaskCreateStatic(test_FPU_test, "FPU", FPU_TASK_STACK_SIZE, NULL, 1, fpuTaskStack, &fpuTaskBuffer);
+  //xTaskCreateStatic(test_FPU_test, "FPU", FPU_TASK_STACK_SIZE, NULL, 1, fpuTaskStack, &fpuTaskBuffer);
+  xTaskCreateStatic(status_task, "sensor", STATUS_STACK_SIZE, NULL, 15, status_task_stack, &status_task_buffer);
+  //xTaskCreateStatic(motor_control_task, "motor_ctl", MOTOR_CONTROL_STACK_SIZE, NULL, 1, motor_control_task_stack, &motor_control_task_buffer);
 
   printf("System Started!\n");
   vTaskStartScheduler();  // should never return
