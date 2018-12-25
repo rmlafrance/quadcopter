@@ -22,11 +22,11 @@
 StackType_t fpuTaskStack[FPU_TASK_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
 StaticTask_t fpuTaskBuffer CCM_RAM;  // Put TCB in CCM
 
-#define STATUS_STACK_SIZE	(1024)
+#define STATUS_STACK_SIZE    (1024)
 StackType_t status_task_stack[STATUS_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
 StaticTask_t status_task_buffer CCM_RAM;  // Put TCB in CCM
 
-#define MOTOR_CONTROL_STACK_SIZE	(1024)
+#define MOTOR_CONTROL_STACK_SIZE    (1024)
 StackType_t motor_control_task_stack[MOTOR_CONTROL_STACK_SIZE] CCM_RAM;  // Put task stack in CCM
 StaticTask_t motor_control_task_buffer CCM_RAM;  // Put TCB in CCM
 
@@ -34,14 +34,15 @@ void init_USART3(void);
 
 void test_FPU_test(void* p);
 
-int main(void) {
+int main(void)
+{
   SystemInit();
 
   /* set 4 bits for priority and 0 for subpriority */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
+  led_init();
   button_init();
-  //led_init();
   pwm_init();
 
   init_USART3();

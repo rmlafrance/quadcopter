@@ -27,18 +27,18 @@ static void init_pin_for_led_use(enum led led)
 
     uint16_t pin = led_to_pin[led];
 
-    //enable gpio ahb clock 
+    //enable gpio ahb clock
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 
     GPIO_InitTypeDef gpio_init;
     GPIO_StructInit(&gpio_init);
-     
+
     gpio_init.GPIO_Pin = pin;
     gpio_init.GPIO_Mode = GPIO_Mode_OUT;
     gpio_init.GPIO_OType = GPIO_OType_PP;
     gpio_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
     gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
-     
+
     GPIO_Init(GPIOD, &gpio_init);
 }
 
@@ -69,6 +69,6 @@ void led_toggle(enum led led)
 
 void led_init(void)
 {
-    init_pin_for_led_use( LED_ALL );
+    init_pin_for_led_use( LED_GREEN );
 }
 
