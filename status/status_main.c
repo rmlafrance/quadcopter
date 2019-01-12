@@ -13,7 +13,7 @@ void status_task(void *context)
 {
 	while(1)
 	{
-		vTaskDelay( LED_HALF_PERIOD_MS );
+		vTaskDelay( 100 );
         led_toggle( STATUS_LED );
 	}
 

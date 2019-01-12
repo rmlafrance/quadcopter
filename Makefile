@@ -3,7 +3,7 @@ TOOLCHAIN_PREFIX:=arm-none-eabi
 
 # Optimization level, can be [0, 1, 2, 3, s].
 OPTLVL:=0
-DBG:=-g
+DBG:=-ggdb3
 
 FREERTOS:=$(CURDIR)/FreeRTOS
 STARTUP:=$(CURDIR)/hardware
@@ -51,6 +51,7 @@ ASRC=startup_stm32f4xx.s
 SRC+=stm32f4xx_it.c
 SRC+=system_stm32f4xx.c
 SRC+=main.c
+SRC+=clock_config.c
 SRC+=syscalls.c
 
 # MY CRAP

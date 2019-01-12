@@ -4,6 +4,8 @@
 #include "math.h"
 #include "stdio.h"
 #include "stm32f4xx_usart.h"
+#include "clock_config.h"
+#include "product_config.h"
 
 // threads
 #include "motor_control.h"
@@ -32,11 +34,12 @@ StaticTask_t motor_control_task_buffer CCM_RAM;  // Put TCB in CCM
 
 void init_USART3(void);
 
-void test_FPU_test(void* p);
+//void test_FPU_test(void* p);
 
 int main(void)
 {
   SystemInit();
+  clock_init();
 
   /* set 4 bits for priority and 0 for subpriority */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
@@ -44,6 +47,15 @@ int main(void)
   led_init();
   button_init();
   pwm_init();
+
+#if 0
+  while(1)
+  {
+      led_toggle( STATUS_LED );
+      for (int i = 0; i < 1000000; i++);
+  }
+#endif
+
 
   init_USART3();
 
@@ -132,6 +144,7 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer, StackT
   *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
+/*
 void test_FPU_test(void* p) {
   float ff = 1.0f;
   printf("Start FPU test task.\n");
@@ -145,7 +158,9 @@ void test_FPU_test(void* p) {
 
   vTaskDelete(NULL);
 }
+*/
 
+#if 1
 /*
  * Configure USART3(PB10, PB11) to redirect printf data to host PC.
  */
@@ -175,3 +190,5 @@ void init_USART3(void) {
   USART_Init(USART3, &USART_InitStruct);
   USART_Cmd(USART3, ENABLE);
 }
+#endif
+

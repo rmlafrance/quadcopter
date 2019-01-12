@@ -23,7 +23,6 @@ static struct pwm_def pwms[] = {
         .gpio_port = MOTOR1_GPIO_PORT,
         .ahb_bus = MOTOR1_GPIO_AHB_BUS,
     },
-#if 0
     [PWM_MOTOR2] = {
         .pin_source = MOTOR2_PIN_SOURCE,
         .gpio_pin = MOTOR2_GPIO_PIN,
@@ -39,7 +38,6 @@ static struct pwm_def pwms[] = {
         .gpio_pin = MOTOR4_GPIO_PIN,
         .gpio_port = MOTOR4_GPIO_PORT,
     },
-#endif
 };
 
 /******************************************************************************
@@ -53,13 +51,13 @@ static void TM_LEDS_Init(void) {
     RCC_AHB1PeriphClockCmd(pwms[PWM_MOTOR1].ahb_bus, ENABLE);
 
     /* Alternating functions for pins */
-    GPIO_PinAFConfig(GPIOD, pwms[PWM_MOTOR1].pin_source, GPIO_AF_TIM4);
-    //GPIO_PinAFConfig(GPIOD, pwm_to_pin[PWM_MOTOR2], GPIO_AF_TIM4);
-    //GPIO_PinAFConfig(GPIOD, pwm_to_pin[PWM_MOTOR3], GPIO_AF_TIM4);
-    //GPIO_PinAFConfig(GPIOD, pwm_to_pin[PWM_MOTOR4], GPIO_AF_TIM4);
+    GPIO_PinAFConfig(GPIOB, pwms[PWM_MOTOR1].pin_source, GPIO_AF_TIM4);
+    GPIO_PinAFConfig(GPIOB, pwms[PWM_MOTOR2].pin_source, GPIO_AF_TIM4);
+    GPIO_PinAFConfig(GPIOB, pwms[PWM_MOTOR3].pin_source, GPIO_AF_TIM4);
+    GPIO_PinAFConfig(GPIOB, pwms[PWM_MOTOR4].pin_source, GPIO_AF_TIM4);
 
     /* Set pins */
-    GPIO_InitStruct.GPIO_Pin = pwms[PWM_MOTOR1].gpio_pin;
+    GPIO_InitStruct.GPIO_Pin = (pwms[PWM_MOTOR1].gpio_pin | pwms[PWM_MOTOR2].gpio_pin | pwms[PWM_MOTOR3].gpio_pin | pwms[PWM_MOTOR4].gpio_pin);
     GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
@@ -151,15 +149,15 @@ void TM_PWM_Init(void) {
     TIM_OC1Init(TIM4, &TIM_OCStruct);
     TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);
 
-    TIM_OCStruct.TIM_Pulse = 4199; /* 50% duty cycle */
+    TIM_OCStruct.TIM_Pulse = 2099; /* 50% duty cycle */
     TIM_OC2Init(TIM4, &TIM_OCStruct);
     TIM_OC2PreloadConfig(TIM4, TIM_OCPreload_Enable);
 
-    TIM_OCStruct.TIM_Pulse = 6299; /* 75% duty cycle */
+    TIM_OCStruct.TIM_Pulse = 2099; /* 75% duty cycle */
     TIM_OC3Init(TIM4, &TIM_OCStruct);
     TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);
 
-    TIM_OCStruct.TIM_Pulse = 8399; /* 100% duty cycle */
+    TIM_OCStruct.TIM_Pulse = 2099; /* 100% duty cycle */
     TIM_OC4Init(TIM4, &TIM_OCStruct);
     TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
 }
