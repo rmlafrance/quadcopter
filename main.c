@@ -44,24 +44,22 @@ int main(void)
   /* set 4 bits for priority and 0 for subpriority */
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 
+  FILE *f = fopen("/dev/accel", "r+");
+  if (f)
+  {
+      led_init();
+  }
+
   led_init();
   button_init();
   pwm_init();
-
-#if 0
-  while(1)
-  {
-      led_toggle( STATUS_LED );
-      for (int i = 0; i < 1000000; i++);
-  }
-#endif
-
 
   init_USART3();
 
   // Create a task
   // Stack and TCB are placed in CCM of STM32F4
   // The CCM block is connected directly to the core, which leads to zero wait states
+
   //xTaskCreateStatic(test_FPU_test, "FPU", FPU_TASK_STACK_SIZE, NULL, 1, fpuTaskStack, &fpuTaskBuffer);
   xTaskCreateStatic(status_task, "sensor", STATUS_STACK_SIZE, NULL, 15, status_task_stack, &status_task_buffer);
   //xTaskCreateStatic(motor_control_task, "motor_ctl", MOTOR_CONTROL_STACK_SIZE, NULL, 1, motor_control_task_stack, &motor_control_task_buffer);

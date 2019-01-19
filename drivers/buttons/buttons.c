@@ -91,19 +91,63 @@ void TIM6_DAC_IRQHandler(void)
             {
 
                 // valid button press
-                static int brightness_pct = 10;
+                static int brightness_pct = 0;
+//#define DESCENDING_SUPPORTED
+#ifndef DESCENDING_SUPPORTED
+
                 brightness_pct += 20;
+
                 if (brightness_pct > 100)
                 {
-                    brightness_pct = 10;
+                    brightness_pct = 0;
+                    led_off(LED_BLUE);
                 }
+                else if (brightness_pct == 100)
+                {
+                    led_on(LED_BLUE);
+                }
+                else
+                {
+                    led_off(LED_BLUE);
+                }
+
+                if (brightness_pct == 0)
+                {
+                    led_on(LED_ORANGE);
+                } else {
+                    led_off(LED_ORANGE);
+                }
+
+#else
+                static bool ascending = true;
+                // count up or down?
+                if (ascending)
+                {
+                    brightness_pct += 20;
+                }
+                else
+                {
+                    brightness_pct -= 20;
+                }
+
+                // swap ascending flag
+                if (brightness_pct >= 100)
+                {
+                    led_off(LED_ORANGE);
+                    ascending = false;
+                }
+                else if (brightness_pct <= 0)
+                {
+                    ascending = true;
+                    led_on(LED_ORANGE);
+                }
+#endif
 
                 // stop the timer
                 stop_debounce_timer();
 
                 // update the brighness now
                 pwm_set_percent(brightness_pct);
-                //led_toggle(LED_ORANGE);
 
                 // todo: should jusb be giving a semaphore
                 enable_pin_interrupts(BUTTON_USER);

@@ -70,5 +70,7 @@ void led_toggle(enum led led)
 void led_init(void)
 {
     init_pin_for_led_use( LED_GREEN );
+    init_pin_for_led_use( LED_ORANGE );
+    init_pin_for_led_use( LED_BLUE );
 }
 
